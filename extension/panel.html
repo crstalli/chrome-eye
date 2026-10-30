@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Chrome Eye</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            position: relative; /* Task G1: anchor for #bridge-overlay */
+        }
+        #dsh-iframe {
+            width: 100%;
+            height: calc(100% - 76px); /* 40px bottom bar + 36px top staging row (Task H) */
+            border: none;
+        }
+        /* =================================================================
+         * Task G1 — dark bridge-offline card over the iframe area. A failed
+         * cross-origin iframe (bridge down) renders as an unstyleable white
+         * "sad file" page, so the panel paints its own dark state over it.
+         * Same dark DSH token set as the rest of this sheet:
+         *   bg-base #151517 (neutral-bluish-925) — the page behind the GUI
+         *   bg-module-platform #353638 (neutral-bluish-800) — card surface
+         *   label-primary #f9fafb, label-secondary #cfd3d6,
+         *   label-tertiary #adb2b8; status green #56d364, red #f85149.
+         * States (panel.js drives data-state): "connecting" = first probe
+         * in flight; "offline" = bridge unreachable; hidden once :3081
+         * answers.
+         * ================================================================= */
+        #bridge-overlay {
+            position: absolute;
+            top: 36px; /* below the Task H staging row — exactly the #dsh-iframe box */
+            left: 0;
+            right: 0;
+            height: calc(100% - 76px); /* exactly the #dsh-iframe box */
+            background: #151517; /* bg-base (neutral-bluish-925) */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+        }
+        #bridge-overlay[hidden] {
+            display: none;
+        }
+        .bridge-overlay-card {
+            background: #353638; /* bg-module-platform (neutral-bluish-800) */
+            border: 1px solid rgba(255, 255, 255, 0.16); /* border-l3 (white @ 16%) */
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45), 0 10px 28px rgba(0, 0, 0, 0.55); /* dark elevation (derived) */
+            padding: 18px 22px;
+            max-width: 440px;
+            margin: 0 16px;
+            text-align: center;
+        }
+        .bridge-overlay-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #cfd3d6; /* label-secondary (connecting state) */
+        }
+        #bridge-overlay[data-state="offline"] .bridge-overlay-title {
+            color: #f85149; /* status red — offline state */
+        }
+        .bridge-overlay-msg {
+            margin-top: 6px;
+            font-size: 12px;
+            color: #cfd3d6; /* label-secondary */
+        }
+        /* =================================================================
+         * T12.3 — DARK panel chrome. Sourced from the REAL DSH dark theme:
+         *   @deepseek-ai/dsh-client-ui-theme, design_platform_css_default
+         *   (client.js:1053, the body[data-ds-dark-theme] alias block).
+         * panel.html is a standalone extension document and does NOT inherit
+         * the GUI's --dsw-* custom properties, so the RESOLVED dark values
+         * are hardcoded here and the originating token is cited per rule.
+         * Pure dark (no light fallback) — the user always runs dark.
+         * Borders: DSH dark border tokens are white+alpha; written as
+         *   rgba(255,255,255,α) — the identical color — for clarity.
+         * ================================================================= */
+        /* --dsw-alias-bg-layer-1 = #232324 (neutral-bluish-875): a raised
+           toolbar surface one step above the iframe's bg-base (#151517). */
+        #bottom-bar {
+            height: 40px;
+            background: #232324; /* bg-layer-1 (neutral-bluish-875) */
+            border-top: 1px solid rgba(255, 255, 255, 0.16); /* border-l3 (white @ 16%) */
+            color: #cfd3d6; /* label-secondary (neutral-bluish-300) */
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            position: relative; /* anchor for the workspace dropdown */
+        }
+        #share-status {
+            flex: 1 1 auto;
+            min-width: 0;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #cfd3d6; /* label-secondary base; .ce-status-ok/.ce-status-err from panel.js color the outcome */
+        }
+        /* T11.3 — always-present workspace-tree dropdown trigger(s) */
+        #ws-controls {
+            margin-left: auto;
+            display: flex;
+            gap: 6px;
+            flex: none;
+        }
+        /* Dark buttons: --dsw-alias-bg-module-platform = #353638
+           (neutral-bluish-800), raised above the layer-1 bar; border-l3;
+           label-primary text. hover -> --dsw-alias-button-elevated-fill
+           = #43454a (neutral-bluish-750) + border-l4. */
+        #ws-controls button {
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.16); /* border-l3 (white @ 16%) */
+            background: #353638; /* bg-module-platform (neutral-bluish-800) */
+            color: #f9fafb; /* label-primary (neutral-bluish-50) */
+            cursor: pointer;
+            transition: background 0.1s ease, border-color 0.1s ease;
+        }
+        #ws-controls button:hover {
+            background: #43454a; /* button-elevated-fill (neutral-bluish-750) */
+            border-color: rgba(255, 255, 255, 0.2); /* border-l4 (white @ 20%) */
+        }
+        #ws-dropdown {
+            position: absolute;
+            bottom: 44px; /* just above the 40px bar */
+            right: 10px;
+            width: 320px;
+            max-height: 420px;
+            display: flex;
+            flex-direction: column;
+            background: #353638; /* bg-layer-3 (neutral-bluish-800) — top elevated layer */
+            border: 1px solid rgba(255, 255, 255, 0.2); /* border-l4 (white @ 20%) — strong F5 edge */
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45), 0 10px 28px rgba(0, 0, 0, 0.55); /* derived dark elevation */
+            overflow: hidden;
+            z-index: 10;
+        }
+        #ws-dropdown[hidden] {
+            display: none;
+        }
+        #ws-dd-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12); /* border-l2 (white @ 12%) */
+            flex: none;
+        }
+        #ws-dd-title {
+            font-weight: 600;
+            font-size: 13px;
+            flex: none;
+            color: #f9fafb; /* label-primary (neutral-bluish-50) */
+        }
+        #ws-dd-status {
+            flex: 1;
+            font-size: 12px;
+            color: #adb2b8; /* label-tertiary (neutral-bluish-400) base; .ce-status-err from panel.js colors errors */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #ws-dd-body {
+            overflow-y: auto;
+            padding: 4px 6px 8px;
+            background: transparent;
+            color: #f9fafb; /* label-primary default; rows use the .ce-ws-* classes below */
+        }
+        /* Dark scrollbar — DSH scrollbar.css dark tokens:
+           --dsh-scrollbar-thumb = --dsw-alias-scrollbar-bg-l1 (neutral-700 #3c3c3d);
+           --dsh-scrollbar-thumb-hover = --dsw-alias-scrollbar-hover-l1 (neutral-600 #545557);
+           width 8px, radius 4px, transparent track. */
+        #ws-dd-body::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        #ws-dd-body::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #ws-dd-body::-webkit-scrollbar-thumb {
+            background: #3c3c3d; /* scrollbar-bg-l1 (neutral-700) */
+            border-radius: 4px;
+        }
+        #ws-dd-body::-webkit-scrollbar-thumb:hover {
+            background: #545557; /* scrollbar-hover-l1 (neutral-600) */
+        }
+        /* =================================================================
+         * Task C — status + dropdown row colors, class-based so panel.js
+         * carries NO inline light-theme colors. ok/err are dark-safe
+         * variants of the old light-theme green/red (#1a7f37 / #b00020):
+         *   ok    #56d364 — dark-safe green (success)
+         *   err   #f85149 — DSH danger red
+         * All dropdown text is label-primary/secondary/tertiary on the
+         * #353638 dropdown surface → ≥ 4.5:1 contrast (task workspace_contrast).
+         * ================================================================= */
+        .ce-status-ok  { color: #56d364; }
+        .ce-status-err { color: #f85149; }
+        /* Task B — connectivity probe segments in the bottom bar.
+           warn = GUI reachable but 401-gated (neutral, not an error). */
+        .ce-conn-ok   { color: #56d364; }
+        .ce-conn-warn { color: #cfd3d6; /* label-secondary */ }
+        .ce-conn-bad  { color: #f85149; }
+        #conn-status {
+            flex: none;
+            font-size: 11px;
+            white-space: nowrap;
+            color: #adb2b8; /* label-tertiary */
+            border-left: 1px solid rgba(255, 255, 255, 0.16); /* border-l3 */
+            padding-left: 10px;
+            margin-left: 10px;
+        }
+        /* Dropdown rows (dark tokens on #353638). */
+        .ce-ws-head {
+            padding: 8px 8px 3px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #f9fafb; /* label-primary */
+        }
+        .ce-ws-row {
+            padding: 5px 8px;
+            font-size: 13px;
+            border-radius: 6px;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #cfd3d6; /* label-secondary */
+        }
+        #ws-dd-body .ce-ws-row:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .ce-ws-row-current {
+            background: rgba(86, 211, 100, 0.10); /* dark-safe green tint */
+            color: #56d364;
+            font-weight: 600;
+        }
+        .ce-ws-more {
+            padding: 5px 8px;
+            font-size: 12px;
+            color: #58a6ff; /* dark-safe link blue (replaces light #1a56db) */
+            cursor: pointer;
+        }
+        .ce-ws-foot {
+            margin-top: 6px;
+            padding: 6px 8px;
+            font-size: 11px;
+            color: #adb2b8; /* label-tertiary */
+            border-top: 1px solid rgba(255, 255, 255, 0.16); /* border-l3 */
+        }
+        .ce-ws-err {
+            padding: 10px 12px;
+            font-size: 12px;
+            color: #f85149; /* danger red */
+        }
+        /* =================================================================
+         * Task H — in-panel "Add tabs" staging row + checkable list.
+         * The old full-window chip strip (content.js T11.2) moved here,
+         * styled like the GUI's native "Add tabs" list: a compact 36px
+         * row at the TOP of the panel (bg-layer-1) holding a toggle
+         * button, the staged-tab chips and the "→ Add to session" action;
+         * below it, a dark in-panel dropdown of this window's http(s)
+         * tabs — favicon + title rows, ✓ on the checked ones (the active
+         * tab starts checked: the SW stages it on panel-open). Same
+         * resolved dark DSH token values as the rest of this sheet
+         * (panel.html is a standalone extension document — no --dsw-*
+         * inheritance). panel.js carries NO colors: every rule below is
+         * the source of every pixel it paints.
+         * ================================================================= */
+        #stage-row {
+            height: 36px;
+            box-sizing: border-box;
+            flex: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 8px;
+            background: #232324; /* bg-layer-1 (neutral-bluish-875) */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.16); /* border-l3 */
+        }
+        /* Task J4 — the "Add tabs" header label (Gemini layout):
+           left-aligned, full row height, no pill; the row it lives in is
+           the expand/collapse affordance. */
+        #ts-btn {
+            flex: 1 1 auto;
+            min-width: 0;
+            height: 100%;
+            padding: 0 12px;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            color: #f9fafb; /* label-primary — Gemini header label */
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: left;
+            cursor: pointer;
+        }
+        #ts-btn:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+        /* Task J5 — the "→ Add to session" action moved OUT of the header
+           row to the BOTTOM of the expanded list (below the tab rows,
+           above the slim status footer). Keeps the status-green accent;
+           full width, rounded like the rows. */
+        #ts-add {
+            flex: none;
+            width: calc(100% - 12px);
+            box-sizing: border-box;
+            margin: 2px 6px 0;
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(86, 211, 100, 0.4); /* status green edge */
+            background: rgba(86, 211, 100, 0.12); /* status green tint (dark-safe) */
+            color: #56d364; /* status green */
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.1s ease;
+        }
+        #ts-add:hover {
+            background: rgba(86, 211, 100, 0.2);
+        }
+        #ts-add:disabled {
+            cursor: default;
+            border-color: rgba(255, 255, 255, 0.12); /* border-l2 */
+            background: #353638; /* bg-module-platform */
+            color: #adb2b8; /* label-tertiary */
+        }
+        /* Task J4 — chevron at the right end of the "Add tabs" header row
+           (Gemini layout). "›" rotates 90° into a "⌄" while expanded;
+           label-tertiary until hover. */
+        /* Agent-drive on-demand capture button in the staging row — same
+           dark tokens as the rest of this sheet. */
+        #ss-capture-row {
+            flex: none;
+            width: 30px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            line-height: 1;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.16); /* border-l3 */
+            background: #353638; /* bg-module-platform */
+            color: #f9fafb; /* label-primary */
+            cursor: pointer;
+            transition: background 0.1s ease;
+        }
+        #ss-capture-row:hover {
+            background: #43454a; /* button-elevated-fill */
+        }
+        #ts-chev {
+            flex: none;
+            width: 28px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            border: none;
+            border-radius: 0;
+            background: transparent;
+            cursor: pointer;
+        }
+        #ts-chev:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .ts-chev-arrow {
+            display: inline-block;
+            font-size: 16px;
+            line-height: 1;
+            color: #adb2b8; /* label-tertiary */
+            transition: transform 0.12s ease;
+        }
+        #ts-chev[aria-expanded="true"] .ts-chev-arrow {
+            transform: rotate(90deg);
+        }
+        /* Task J4 — expanded tab list: a flush continuation of the
+           "Add tabs" header row (Gemini layout), not a floating card —
+           the same bg-layer-1 surface with one bottom border. */
+        #ts-dropdown {
+            position: absolute;
+            top: 36px; /* just below #stage-row, over the iframe */
+            left: 0;
+            right: 0;
+            max-height: 300px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            background: #232324; /* bg-layer-1 — continues the header row */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.16); /* border-l3 */
+            overflow: hidden;
+            z-index: 10;
+        }
+        #ts-dropdown[hidden] {
+            display: none;
+        }
+        /* Task J4 — slim footer under the tab list (count / hint). */
+        #ts-dd-status {
+            flex: none;
+            padding: 6px 12px;
+            font-size: 11px;
+            color: #adb2b8; /* label-tertiary; .ce-status-err colors errors */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border-top: 1px solid rgba(255, 255, 255, 0.12); /* border-l2 */
+        }
+        #ts-dd-body {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 4px 6px 8px;
+        }
+        #ts-dd-body::-webkit-scrollbar { width: 8px; height: 8px; }
+        #ts-dd-body::-webkit-scrollbar-track { background: transparent; }
+        #ts-dd-body::-webkit-scrollbar-thumb {
+            background: #3c3c3d; /* scrollbar-bg-l1 (neutral-700) */
+            border-radius: 4px;
+        }
+        #ts-dd-body::-webkit-scrollbar-thumb:hover {
+            background: #545557; /* scrollbar-hover-l1 (neutral-600) */
+        }
+        /* Task J4 — Gemini-style row: 16px favicon + ONE truncated title
+           line + (when selected) a filled accent check circle on the
+           right. The selected row gets the accent border box + faint
+           tint; the transparent default border avoids layout shift. */
+        .ts-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            margin: 1px 0;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-size: 13px;
+            color: #f9fafb; /* label-primary — tab titles */
+            user-select: none;
+        }
+        .ts-row:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .ts-row-on {
+            border-color: #56d364; /* status green — the single accent */
+            background: rgba(86, 211, 100, 0.08); /* dark-safe green tint */
+        }
+        .ts-row-on:hover {
+            background: rgba(86, 211, 100, 0.12);
+        }
+        .ts-fav {
+            flex: none;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .ts-fav-img {
+            width: 16px;
+            height: 16px;
+            display: block;
+            border-radius: 3px;
+        }
+        .ts-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            background: #43454a; /* button-elevated-fill (neutral fallback) */
+            color: #adb2b8; /* label-tertiary */
+            font-size: 10px;
+            line-height: 16px;
+            text-align: center;
+        }
+        .ts-title {
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        /* Gemini check: 18px circle — filled status-green with a dark ✓
+           when selected, empty otherwise. */
+        .ts-check {
+            flex: none;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 12px;
+            line-height: 1;
+            color: #151517; /* bg-base — dark check on the green disc */
+        }
+        .ts-check-on {
+            background: #56d364; /* status green — the single accent */
+        }
+        /* =================================================================
+         * Agent-drive screenshot preview. The agent (chrome-eye model tool
+         * → bridge /cmd → SW) captures the active content tab; the SW relays
+         * the PNG to the panel, which paints it here (a card over the
+         * iframe, like #bridge-overlay) so the user can SEE the rendered
+         * page the agent is looking at. A "Capture" button in the Add-tabs
+         * row triggers the same screenshot on demand (the panel itself is
+         * the human's "refresh the view" affordance). Same hardcoded dark
+         * DSH token values as the rest of this sheet (panel.html inherits
+         * no --dsw-* properties).
+         * ================================================================= */
+        #screenshot-overlay {
+            position: absolute;
+            bottom: 80px; /* above the bottom bar */
+            right: 12px;
+            width: 260px;
+            max-height: 320px;
+            background: #353638; /* bg-module-platform */
+            border: 1px solid rgba(255, 255, 255, 0.16); /* border-l3 */
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+            z-index: 8; /* above the iframe */
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            padding: 8px 10px;
+            gap: 6px;
+        }
+        #screenshot-overlay[hidden] {
+            display: none;
+        }
+        #ss-head {
+            flex: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #cfd3d6; /* label-secondary */
+        }
+        #ss-title {
+            flex: 1 1 auto;
+            min-width: 0;
+            font-size: 11px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #adb2b8; /* label-tertiary */
+        }
+        #ss-capture {
+            flex: none;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.16); /* border-l3 */
+            background: #151517; /* bg-base */
+            color: #f9fafb; /* label-primary */
+            cursor: pointer;
+            transition: background 0.1s ease;
+        }
+        #ss-capture:hover {
+            background: #43454a; /* button-elevated-fill */
+        }
+        #ss-close {
+            flex: none;
+            font-size: 12px;
+            line-height: 1;
+            width: 20px;
+            height: 20px;
+            border: none;
+            border-radius: 5px;
+            background: transparent;
+            color: #adb2b8; /* label-tertiary */
+            cursor: pointer;
+        }
+        #ss-close:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: #f9fafb;
+        }
+        #ss-img-wrap {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #151517; /* bg-base */
+            border: 1px solid rgba(255, 255, 255, 0.12); /* border-l2 */
+            border-radius: 8px;
+            overflow: auto;
+        }
+        #ss-img {
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+            border-radius: 4px;
+        }
+        #ss-img-loading {
+            color: #adb2b8; /* label-tertiary */
+            font-size: 11px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Task H/J4/J5 — Gemini-style collapsible "Add tabs" header row
+         (the old full-window chip strip from content.js, reworked into the
+         panel). Task J5: the header holds ONLY the "Add tabs" label +
+         " (N)" selected count (hidden at 0) + the chevron — the staged
+         chips are gone (selection is shown on the rows themselves: ✓ +
+         green border; click a selected row to unselect it). Clicking the
+         row expands this window's tab list directly below it — favicon +
+         title rows; NOTHING is pre-selected (the user checks rows
+          explicitly). The "→ Add to session" button lives at the BOTTOM
+          of the expanded list and only CONFIRMS the staging — the pages
+          are captured fresh when the next prompt is submitted (the
+          composer hook in the GUI iframe does the attach). panel.js wires
+          it to the EXISTING sw.js messages (list-tabs / stage-tab /
+          unstage-tab / add-staged / panel-state) — no new SW messages. -->
+    <div id="stage-row">
+        <button id="ts-btn" title="Choose pages to add to the session" aria-expanded="false">Add tabs</button>
+        <button id="ss-capture-row" title="Capture a screenshot of the active content tab (what the agent sees)" aria-label="Capture screenshot">📷</button>
+        <button id="ts-chev" title="Expand or collapse the page list" aria-expanded="false"><span class="ts-chev-arrow">›</span></button>
+    </div>
+    <!-- Task J4/J5 — the expanded tab list: a flush continuation of the
+         header row (Gemini layout); the "→ Add to session" button sits
+         below the tab rows, #ts-dd-status is the slim footer. -->
+    <div id="ts-dropdown" hidden>
+        <div id="ts-dd-body"></div>
+        <button id="ts-add" title="Confirm: the checked pages attach to your next prompt (captured fresh when you send it)" disabled>→ Add to session</button>
+        <div id="ts-dd-status"></div>
+    </div>
+    <iframe id="dsh-iframe" src="http://127.0.0.1:3081"></iframe>
+    <!-- Task G1: dark card over the iframe area while the bridge is
+         unreachable (a failed cross-origin iframe renders an unstyleable
+         white page). panel.js probeConn() sets data-state to
+         "connecting" (first probe in flight) or "offline" and hides this
+         once :3081 answers. -->
+    <div id="bridge-overlay" data-state="connecting">
+        <div class="bridge-overlay-card">
+            <div class="bridge-overlay-title" id="bridge-overlay-title">Connecting…</div>
+            <div class="bridge-overlay-msg" id="bridge-overlay-msg">reaching the chrome-eye bridge on 127.0.0.1:3081</div>
+        </div>
+    </div>
+    <!-- Agent-drive screenshot preview: the chrome-eye model tool
+         (bridge /cmd → SW) captures the active content tab; the SW
+         relays the PNG to the panel and it is painted here so the user
+         can see the rendered page the agent is looking at. A "Capture"
+         button (in the staging row) triggers the same screenshot on
+         demand — the human's "refresh the view" affordance. -->
+    <div id="screenshot-overlay" hidden>
+        <div id="ss-head">
+            <span id="ss-title"></span>
+            <button id="ss-capture" title="Re-capture the active content tab now">📷 Capture</button>
+            <button id="ss-close" title="Close the screenshot preview" aria-label="Close">✕</button>
+        </div>
+        <div id="ss-img-wrap"><span id="ss-img-loading">capturing…</span></div>
+    </div>
+    <!-- T11.6: the "Share this page" button is gone; the in-panel "Add
+         tabs" staging row (Task H) is the share UI. T11.3 adds the
+         always-present workspace-tree dropdown ("Workspaces ▾") to the
+         right of the status span. Task J removed the overlay toggle
+         ("⛶ workspace") and the danger close button — the workspace
+         overlay is no longer reachable from the panel. -->
+    <div id="bottom-bar">
+        <span id="share-status"></span>
+        <!-- Task B/G1: real connectivity probe (single :3081 bridge probe,
+             re-probed on load and every 30s by panel.js) — replaces the
+             stale GUI chip; also drives the #bridge-overlay card. -->
+        <span id="conn-status"><span id="conn-gui" class="ce-conn-warn">GUI: …</span> · <span id="conn-bridge" class="ce-conn-warn">bridge: …</span></span>
+        <div id="ws-controls">
+            <button id="ws-tree-btn" title="Browse workspaces & sessions in the DSH GUI">Workspaces ▾</button>
+        </div>
+        <div id="ws-dropdown" hidden>
+            <div id="ws-dd-head">
+                <span id="ws-dd-title">Workspaces</span>
+                <span id="ws-dd-status"></span>
+            </div>
+            <div id="ws-dd-body"></div>
+        </div>
+    </div>
+    <script src="panel.js"></script>
+</body>
+</html>

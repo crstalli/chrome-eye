@@ -1,0 +1,15 @@
+{
+  "name": "@local/chrome-eye-bridge",
+  "version": "1.0.0",
+  "description": "Host plugin: dsh web spawns and supervises the chrome-eye bridge child process.",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+      "@deepseek-ai/cordis": "*",
+      "@deepseek-ai/schemastery": "*"
+  }
+}

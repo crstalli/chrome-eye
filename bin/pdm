@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# podman wrapper for this sandbox: runtime+storage state under /tmp (writable)
+export XDG_RUNTIME_DIR=/tmp/podman-rt
+# WSL2 socket-activates the session bus and polkit-rejects crun's sd-bus cgroup calls;
+# rootless podman + cgroupfs doesn't need the bus, so drop it.
+unset DBUS_SESSION_BUS_ADDRESS
+mkdir -p "$XDG_RUNTIME_DIR/run" /tmp/podman-store
+exec podman --root /tmp/podman-store --runroot "$XDG_RUNTIME_DIR/run" "$@"

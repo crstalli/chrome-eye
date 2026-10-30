@@ -1,0 +1,15 @@
+{
+  "name": "@local/chrome-eye-tools",
+  "version": "1.0.0",
+  "description": "Chrome Eye tools: screenshot, readPage, listTabs for the DSH agent.",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@deepseek-ai/cordis": "*",
+    "@deepseek-ai/schemastery": "*"
+  }
+}
