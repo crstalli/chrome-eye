@@ -3,8 +3,17 @@
   "version": "1.0.0",
   "private": true,
   "description": "Chrome Eye — agent-driven browser control extension for DSH",
+  "main": "index.js",
+  "type": "module",
+  "files": ["bridge/", "extension/", "plugins/", "cordis.patch.yml"],
   "scripts": {
-    "prepare": "node -e \"\nconst fs = require('fs');\nconst path = require('path');\nconst { execSync } = require('child_process');\n\n// Create @local symlinks from the repo's plugins directory\nconst nodeModules = path.join(__dirname, 'node_modules');\nconst localDir = path.join(nodeModules, '@local');\n\nif (!fs.existsSync(localDir)) {\n  fs.mkdirSync(localDir, { recursive: true });\n}\n\n// Create symlinks for each plugin\nconst plugins = fs.readdirSync(path.join(__dirname, 'plugins')).filter(f => {\n  const p = path.join(__dirname, 'plugins', f);\n  return fs.statSync(p).isDirectory();\n});\n\nfor (const plugin of plugins) {\n  const link = path.join(localDir, plugin);\n  const target = path.join(__dirname, 'plugins', plugin);\n  \n  try { fs.unlinkSync(link); } catch {}\n  fs.symlinkSync(target, link, 'dir');\n  console.log('  created symlink:', '@local/' + plugin, '->', target);\n}\n\nconsole.log('chrome-eye: installed', plugins.length, 'plugin(s)');\n\"\n  },
+    "prepare": "node -e \"\\nconst fs=require('fs');const p=require('path');const nm=p.join(__dirname,'node_modules');const ld=p.join(nm,'@local');if(!fs.existsSync(ld))fs.mkdirSync(ld,{recursive:true});fs.readdirSync(p.join(__dirname,'plugins')).filter(f=>{const pp=p.join(__dirname,'plugins',f);return fs.statSync(pp).isDirectory();}).forEach(plugin=>{const lk=p.join(ld,plugin);const tg=p.join(__dirname,'plugins',plugin);try{fs.unlinkSync(lk);}catch(e){}fs.symlinkSync(tg,lk,'dir');console.log('  @local/'+plugin);});console.log('chrome-eye: prepared',fs.readdirSync(p.join(__dirname,'plugins')).filter(f=>fs.statSync(p.join(__dirname,'plugins',f)).isDirectory()).length,'plugins');\\n\""
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
   "devDependencies": {
     "playwright": "^1.64.0"
   },
