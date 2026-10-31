@@ -1,0 +1,182 @@
+{
+ "mode": "real-tab regression (cookie)",
+ "steps": [
+  {
+   "step": "panel-ready",
+   "data": {
+    "ready": true
+   }
+  },
+  {
+   "step": "sw-patch",
+   "data": {
+    "result": "already-patched"
+   }
+  },
+  {
+   "step": "panel-iframe-attached",
+   "data": {
+    "id": "5DF8B6C0FE7E10655D4927A3C79D5294"
+   }
+  },
+  {
+   "step": "real-tab-loaded",
+   "data": {
+    "rs": "complete",
+    "centerCol": true,
+    "sidebar": true,
+    "is401": false
+   }
+  },
+  {
+   "step": "real-tab-load-markers",
+   "data": {
+    "count": 1,
+    "note": "1 => manifest-injected at load; 0 => injection happened before attach (acceptable, noted)"
+   }
+  },
+  {
+   "step": "sw-tabs",
+   "data": [
+    {
+     "id": 677913576,
+     "url": "about:blank"
+    },
+    {
+     "id": 677913577,
+     "url": "http://127.0.0.1:3081/health"
+    },
+    {
+     "id": 677913578,
+     "url": "chrome-extension://mlolgaoijponghgfnlcljlohnhlpnhkd/panel.html"
+    },
+    {
+     "id": 677913581,
+     "url": "http://127.0.0.1:3080/"
+    }
+   ]
+  },
+  {
+   "step": "real-tab-id",
+   "data": {
+    "realTabId": 677913581
+   }
+  },
+  {
+   "step": "panel-tree",
+   "data": {
+    "hidden": false,
+    "status": "3 workspace(s), 3 session(s)",
+    "statusColor": "rgb(102, 102, 102)",
+    "body": "ai (0)\nai (0)\ncztl (3)\nâ— New Session\nI want to create a\n\"You are acting as a\ncurrent (SW cache): session-a21d3403-83f1-4104-b0e7-dda0419dac55",
+    "clicks": 1,
+    "note": "retries until the fresh SPA tab renders its sidebar rows"
+   }
+  },
+  {
+   "step": "sw-last-send",
+   "data": {
+    "tabId": 677913581,
+    "type": "chrome-eye:scrape-tree"
+   }
+  },
+  {
+   "step": "real-tab-preferred",
+   "data": {
+    "usedRealTab": true,
+    "frameIdAbsent": true,
+    "type": "chrome-eye:scrape-tree"
+   }
+  },
+  {
+   "step": "real-tab-markers-after-click",
+   "data": {
+    "count": 1,
+    "note": "unchanged => no executeScript fallback"
+   }
+  },
+  {
+   "step": "overlay-panel-status",
+   "data": {
+    "text": "Workspace overlay opened in the GUI tab (grouped, 3 sessions; Esc or âœ• closes it)",
+    "color": "rgb(26, 127, 55)"
+   }
+  },
+  {
+   "step": "overlay-routing",
+   "data": {
+    "presentInRealTab": {
+     "present": true,
+     "bodyText": "ai (0)\nai (0)\ncztl (3)\n● New Session\nI want to create a\n\"You are acting as a"
+    },
+    "presentInPanelIframe": false
+   }
+  },
+  {
+   "step": "overlay-closed-in-real-tab",
+   "data": {
+    "present": false
+   }
+  },
+  {
+   "step": "chip-row-present",
+   "data": {
+    "chips": "present"
+   }
+  },
+  {
+   "step": "picker",
+   "data": {
+    "picker": "found"
+   }
+  },
+  {
+   "step": "picker-entry-click",
+   "data": {
+    "clicked": 1
+   }
+  },
+  {
+   "step": "staged",
+   "data": {
+    "staged": true,
+    "goEnabled": true
+   }
+  },
+  {
+   "step": "share-post",
+   "data": {
+    "url": "http://127.0.0.1:3081/health",
+    "method": "POST",
+    "sessionId": "session-a21d3403-83f1-4104-b0e7-dda0419dac55",
+    "title": "",
+    "textLen": 11,
+    "hasImage": false,
+    "note": "single-page payload shape (sw.js composePayload); bridge reads visibleText"
+   }
+  },
+  {
+   "step": "sw-capture-send",
+   "data": {
+    "lastSend": {
+     "tabId": 677913577,
+     "type": "chrome-eye:capture"
+    },
+    "note": "captureTab -> top frame of the staged real web tab (no frameId)"
+   }
+  },
+  {
+   "step": "chip-row-final",
+   "data": {
+    "text": "1\n127.0.0.1:3081/health\n✕\n+\n→ add to session\nShare failed: unauthorized"
+   }
+  },
+  {
+   "step": "panel-share-status",
+   "data": {
+    "text": "Share failed: unauthorized",
+    "color": "rgb(176, 0, 32)"
+   }
+  }
+ ]
+}

@@ -5,9 +5,9 @@
   "description": "Chrome Eye — agent-driven browser control extension for DSH",
   "main": "index.js",
   "type": "module",
-  "files": ["bridge/", "extension/", "plugins/", "cordis.patch.yml", "prepare.js"],
+  "files": ["bridge/", "extension/", "plugins/", "cordis.patch.yml", "prepare.cjs"],
   "scripts": {
-    "prepare": "node prepare.js"
+    "prepare": "node prepare.cjs"
   },
   "dsh": {
     "bundle": {

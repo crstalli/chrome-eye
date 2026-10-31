@@ -1,0 +1,75 @@
+{
+ "mode": "no-cookie degradation (fresh profile)",
+ "steps": [
+  {
+   "step": "panel-tab",
+   "data": {
+    "id": "8521525D14489A2843AE3FD96BA4A61F",
+    "url": "chrome-extension://mlolgaoijponghgfnlcljlohnhlpnhkd/panel.html"
+   }
+  },
+  {
+   "step": "panel-ready",
+   "data": {
+    "ready": true
+   }
+  },
+  {
+   "step": "sw-attached",
+   "data": {
+    "id": "F793F0441FEF8AD66E972ACDD7F67EBC"
+   }
+  },
+  {
+   "step": "iframe-401-committed",
+   "data": {
+    "url": "http://127.0.0.1:3080/",
+    "rs": "complete",
+    "bodyText": "dsh web authentication required; reopen the URL printed by dsh web.\n"
+   }
+  },
+  {
+   "step": "tree-click-nocookie",
+   "data": {
+    "hidden": false,
+    "status": "error",
+    "statusColor": "rgb(176, 0, 32)",
+    "body": "The GUI sidebar isn't visible right now â€” open the workspace in the GUI sidebar first."
+   }
+  },
+  {
+   "step": "marker-after-click",
+   "data": {
+    "before": 0,
+    "after": 1,
+    "delta": 1
+   }
+  },
+  {
+   "step": "overlay-panel-status",
+   "data": {
+    "text": "Workspace overlay opened in the GUI tab (none, 0 sessions; Esc or âœ• closes it)",
+    "color": "rgb(26, 127, 55)"
+   }
+  },
+  {
+   "step": "overlay-in-401-iframe",
+   "data": {
+    "present": true,
+    "bodyText": "The GUI sidebar isn't visible right now — open the workspace in the GUI sidebar first."
+   }
+  },
+  {
+   "step": "first-click-race-after-reload",
+   "data": {
+    "error": "settle timeout: tree dropdown did not settle; last: {\"hidden\":true,\"status\":\"\",\"statusColor\":\"rgb(102, 102, 102)\",\"body\":\"\"}",
+    "state": {
+     "hidden": true,
+     "status": "",
+     "statusColor": "rgb(102, 102, 102)",
+     "body": ""
+    }
+   }
+  }
+ ]
+}

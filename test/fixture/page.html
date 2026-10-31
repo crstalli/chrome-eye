@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Chrome Eye Test Page</title>
+  <style>
+    body { font-family: sans-serif; margin: 24px; max-width: 720px; line-height: 1.5; }
+    .marker { display: none; }
+    footer { margin-top: 32px; border-top: 1px solid #ccc; padding-top: 8px; color: #555; }
+  </style>
+</head>
+<body>
+  <div class="marker" data-marker="chrome-eye-fixture-v1">chrome-eye-fixture-v1</div>
+  <h1>Alpha heading</h1>
+  <p>First paragraph. The quick brown fox jumps over the lazy dog.</p>
+  <h2>Beta section</h2>
+  <p>Second paragraph with links:
+     <a href="https://example.com/">Home</a>,
+     <a href="https://example.com/docs">Docs</a>,
+     <a href="https://docs.example.dev/api">API</a>,
+     <a href="https://example.org/cn">中文链接</a>,
+     <a href="https://example.net/end">Last</a>.
+  </p>
+  <h3>Gamma subsection</h3>
+  <p>这是中文测试文本，用于验证编码与提取。</p>
+  <p>Final paragraph. Lorem ipsum dolor sit amet, consectetur adipiscing elit.</p>
+  <div id="form-section">
+    <label for="search-input">Search:</label>
+    <input id="search-input" type="text" placeholder="Type here to test typing..." />
+    <button id="fixture-btn" style="padding: 8px 16px; margin-top: 4px;">Click me</button>
+    <span id="btn-count">0 clicks</span>
+  </div>
+  <footer>
+    <p>End of fixture page. Marker: chrome-eye-fixture-v1</p>
+  </footer>
+</body>
+</html>

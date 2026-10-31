@@ -1,0 +1,151 @@
+{
+ "mode": "panel-only (cookie)",
+ "steps": [
+  {
+   "step": "devtools-up",
+   "data": {
+    "firstUrl": "about:blank"
+   }
+  },
+  {
+   "step": "cookie-set",
+   "data": {
+    "success": true,
+    "name": "dsh-auth-VPhEEcLKeqRDBoBalzN2Nm7CnfxKhLE00pKIDWxt1sw",
+    "present": true
+   }
+  },
+  {
+   "step": "health-tab",
+   "data": {
+    "id": "1FF6CEA94EDE235C1035B0230344573D",
+    "url": "http://127.0.0.1:3081/health"
+   }
+  },
+  {
+   "step": "panel-tab",
+   "data": {
+    "id": "921B946908F9AF3F3D60548FB14BA43F",
+    "url": "chrome-extension://mlolgaoijponghgfnlcljlohnhlpnhkd/panel.html"
+   }
+  },
+  {
+   "step": "iframe-gui-real-not-401",
+   "data": {
+    "rs": "complete",
+    "centerCol": true,
+    "sidebar": false,
+    "title": "DeepSeek Harness",
+    "is401": false,
+    "bodyStart": "New Session Workspaces No sessions yet Cordis plugins OTHER SESSIONS think-1 Thinking Mode Selector Awaiting approval Adds a dropdown beside the model selector "
+   }
+  },
+  {
+   "step": "panel-ready",
+   "data": {
+    "panelReady": true
+   }
+  },
+  {
+   "step": "sw-attached",
+   "data": {
+    "id": "F312B756917B8D89773160D713D0D99A"
+   }
+  },
+  {
+   "step": "tree-click1-first",
+   "data": {
+    "hidden": false,
+    "status": "error",
+    "statusColor": "rgb(176, 0, 32)",
+    "body": "The GUI sidebar isn't visible right now â€” open the workspace in the GUI sidebar first."
+   }
+  },
+  {
+   "step": "marker-after-click1",
+   "data": {
+    "before": 0,
+    "after": 1,
+    "delta": 1,
+    "note": "delta=1 => executeScript fallback fired; delta=0 => live receiver"
+   }
+  },
+  {
+   "step": "tree-click2-reopen",
+   "data": {
+    "hidden": false,
+    "status": "error",
+    "statusColor": "rgb(176, 0, 32)",
+    "body": "The GUI sidebar isn't visible right now â€” open the workspace in the GUI sidebar first."
+   }
+  },
+  {
+   "step": "marker-after-click2",
+   "data": {
+    "after": 1,
+    "delta": 0,
+    "note": "delta=0 => live content script answered (no re-injection)"
+   }
+  },
+  {
+   "step": "sw-guiSessionId-before-fake",
+   "data": {
+    "swGuiSessionId": "UNDEFINED"
+   }
+  },
+  {
+   "step": "sw-guiSessionId-after-fake",
+   "data": {
+    "swGuiSessionId": "UNDEFINED"
+   }
+  },
+  {
+   "step": "fakesession-flow",
+   "data": {
+    "beforeFake": "UNDEFINED",
+    "afterFake": "UNDEFINED",
+    "fakeReachedSwCache": false
+   }
+  },
+  {
+   "step": "chip-row-present",
+   "data": {
+    "exists": true,
+    "text": "+\n→ add to session"
+   }
+  },
+  {
+   "step": "picker-entry",
+   "data": {
+    "found": true,
+    "text": "1\n127.0.0.1:3081/health\nhttp://127.0.0.1:3081/health"
+   }
+  },
+  {
+   "step": "entry-clicked",
+   "data": {
+    "entryClick": "clicked-entry"
+   }
+  },
+  {
+   "step": "staged",
+   "data": {
+    "staged": true,
+    "goEnabled": true,
+    "text": "1\n127.0.0.1:3081/health\n✕\n+\n→ add to session"
+   }
+  },
+  {
+   "step": "go-clicked",
+   "data": {
+    "goClick": "go-clicked"
+   }
+  },
+  {
+   "step": "FATAL",
+   "data": {
+    "error": "Error: no :3081/share POST observed on the SW within 10s\n    at file:///mnt/f/ai/chrome-eye/scratch/test-panel-only.mjs:212:19"
+   }
+  }
+ ]
+}

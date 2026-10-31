@@ -1,0 +1,13 @@
+{
+  "name": "chrome-eye-tests",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "T12.7 browser-automation tests (playwright + screenshots) for the chrome-eye side panel. Run: node run.mjs",
+  "scripts": {
+    "test": "node run.mjs"
+  },
+  "dependencies": {
+    "playwright": "1.63.0"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "title": "Chrome Eye Test Page",
+  "headings": [
+    { "level": 1, "t": "Alpha heading" },
+    { "level": 2, "t": "Beta section" },
+    { "level": 3, "t": "Gamma subsection" }
+  ],
+  "links": [
+    { "t": "Home", "h": "https://example.com/" },
+    { "t": "Docs", "h": "https://example.com/docs" },
+    { "t": "API", "h": "https://docs.example.dev/api" },
+    { "t": "中文链接", "h": "https://example.org/cn" },
+    { "t": "Last", "h": "https://example.net/end" }
+  ],
+  "mustContain": [
+    "The quick brown fox jumps over the lazy dog",
+    "这是中文测试文本，用于验证编码与提取",
+    "End of fixture page"
+  ]
+}

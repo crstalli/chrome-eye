@@ -1,0 +1,262 @@
+{
+ "mode": "panel-only rerun (Issue B + Issue A)",
+ "extId": "mlolgaoijponghgfnlcljlohnhlpnhkd",
+ "steps": [
+  {
+   "step": "cookie-set",
+   "data": {
+    "name": "dsh-auth-VPhEEcLKeqRDBoBalzN2Nm7CnfxKhLE00pKIDWxt1sw",
+    "t": 26
+   }
+  },
+  {
+   "step": "panel-ready",
+   "data": {
+    "ready": true,
+    "t": 2566
+   }
+  },
+  {
+   "step": "iframe-real-gui",
+   "data": {
+    "rs": "complete",
+    "centerCol": true,
+    "sidebar": false,
+    "is401": false
+   }
+  },
+  {
+   "step": "sw-attached",
+   "data": {
+    "id": "9288D29ED6277118383A9FE59AB0301C",
+    "t": 3780
+   }
+  },
+  {
+   "step": "sw-scope-canary",
+   "data": {
+    "tGui": "object",
+    "tEnd": "string",
+    "tStaged": "object",
+    "gui": null,
+    "selfGui": null,
+    "selfChrome": true,
+    "hasOwn": [
+     "guiSessionId:true",
+     "stagedTabs:true",
+     "panelOpen:true",
+     "SHARE_ENDPOINT:true",
+     "findGuiTab:true"
+    ]
+   }
+  },
+  {
+   "step": "sw-state-prep",
+   "data": {
+    "panelOpen": true,
+    "gui": "",
+    "staged": 0
+   }
+  },
+  {
+   "step": "tree-click1",
+   "data": {
+    "tree": {
+     "hidden": false,
+     "status": "error",
+     "statusColor": "rgb(176, 0, 32)",
+     "body": "The GUI sidebar isn't visible right now â€” open the workspace in the GUI sidebar first."
+    },
+    "markerDelta": 1,
+    "t": 4192
+   }
+  },
+  {
+   "step": "tree-click2-reopen",
+   "data": {
+    "tree": {
+     "hidden": false,
+     "status": "error",
+     "statusColor": "rgb(176, 0, 32)",
+     "body": "The GUI sidebar isn't visible right now â€” open the workspace in the GUI sidebar first."
+    },
+    "markerDelta": 0,
+    "markerDeltaTotal": 1,
+    "note": "delta=0 => live content script answered (no re-injection)",
+    "t": 4597
+   }
+  },
+  {
+   "step": "fake-session-set",
+   "data": {
+    "value": "fake-mttj21ub-p9x9wx",
+    "shape": "JSON {sessionId}",
+    "t": 4598
+   }
+  },
+  {
+   "step": "guiSessionId-samples-after-fake",
+   "data": [
+    {
+     "t": 5602,
+     "swId": "9288D29ED627",
+     "tGui": "string",
+     "gui": "",
+     "selfGui": ""
+    },
+    {
+     "t": 6605,
+     "swId": "9288D29ED627",
+     "tGui": "string",
+     "gui": "fake-mttj21ub-p9x9wx",
+     "selfGui": "fake-mttj21ub-p9x9wx"
+    },
+    {
+     "t": 7608,
+     "swId": "9288D29ED627",
+     "tGui": "string",
+     "gui": "fake-mttj21ub-p9x9wx",
+     "selfGui": "fake-mttj21ub-p9x9wx"
+    },
+    {
+     "t": 8613,
+     "swId": "9288D29ED627",
+     "tGui": "string",
+     "gui": "fake-mttj21ub-p9x9wx",
+     "selfGui": "fake-mttj21ub-p9x9wx"
+    },
+    {
+     "t": 9617,
+     "swId": "9288D29ED627",
+     "tGui": "string",
+     "gui": "fake-mttj21ub-p9x9wx",
+     "selfGui": "fake-mttj21ub-p9x9wx"
+    },
+    {
+     "t": 10620,
+     "swId": "9288D29ED627",
+     "tGui": "string",
+     "gui": "fake-mttj21ub-p9x9wx",
+     "selfGui": "fake-mttj21ub-p9x9wx"
+    },
+    {
+     "t": 11623,
+     "swId": "9288D29ED627",
+     "tGui": "string",
+     "gui": "fake-mttj21ub-p9x9wx",
+     "selfGui": "fake-mttj21ub-p9x9wx"
+    }
+   ]
+  },
+  {
+   "step": "picker",
+   "data": {
+    "picker": "found"
+   }
+  },
+  {
+   "step": "staged",
+   "data": {
+    "staged": true,
+    "goEnabled": true
+   }
+  },
+  {
+   "step": "go-click-1",
+   "data": {
+    "click": "go",
+    "swIdAtGo": "9288D29ED6277118383A9FE59AB0301C",
+    "postObserved": true,
+    "post": {
+     "url": "http://127.0.0.1:3081/share",
+     "method": "POST",
+     "postData": "{\"url\":\"http://127.0.0.1:3081/health\",\"title\":\"\",\"visibleText\":\"{\\\"ok\\\":true}\",\"links\":[],\"headings\":[],\"sessionId\":\"fake-mttj21ub-p9x9wx\"}"
+    },
+    "httpResponse": {
+     "status": 401
+    },
+    "httpBody": "{\"ok\":false,\"injected\":false,\"error\":{\"code\":\"upstream-error\",\"message\":\"unauthorized\"}}",
+    "chipText": "1\n127.0.0.1:3081/health\n✕\n+\n→ add to session\nShare failed: unauthorized",
+    "panelShareStatus": {
+     "text": "Share failed: unauthorized",
+     "color": "rgb(176, 0, 32)"
+    }
+   }
+  },
+  {
+   "step": "sw-console-chrome-eye-lines",
+   "data": []
+  },
+  {
+   "step": "share-page-log-probe",
+   "data": {
+    "ok": false,
+    "status": 401,
+    "injected": false,
+    "fallback": false,
+    "error": "unauthorized",
+    "url": "http://127.0.0.1:3081/health",
+    "title": "",
+    "textLength": 11,
+    "hasImage": false
+   }
+  },
+  {
+   "step": "sw-console-chrome-eye-lines-final",
+   "data": [
+    {
+     "sw": "9288D29E",
+     "type": "log",
+     "text": "Chrome Eye capture context Object"
+    },
+    {
+     "sw": "9288D29E",
+     "type": "warning",
+     "text": "Chrome Eye: screenshot failed — sharing text only (T6.9) Error: Either the '<all_urls>' or 'activeTab' permission is required."
+    },
+    {
+     "sw": "9288D29E",
+     "type": "log",
+     "text": "Chrome Eye share payload Object"
+    }
+   ]
+  },
+  {
+   "step": "final-sw-read",
+   "data": {
+    "tGui": "string",
+    "tEnd": "string",
+    "tStaged": "object",
+    "gui": "fake-mttj21ub-p9x9wx",
+    "selfGui": "fake-mttj21ub-p9x9wx",
+    "selfChrome": true,
+    "hasOwn": [
+     "guiSessionId:true",
+     "stagedTabs:true",
+     "panelOpen:true",
+     "SHARE_ENDPOINT:true",
+     "findGuiTab:true"
+    ]
+   }
+  },
+  {
+   "step": "sw-timeline-final",
+   "data": {
+    "events": [
+     {
+      "t": 34,
+      "id": "9288D29ED6277118383A9FE59AB0301C",
+      "note": "appeared"
+     }
+    ]
+   }
+  }
+ ],
+ "swTimeline": [
+  {
+   "t": 34,
+   "id": "9288D29ED6277118383A9FE59AB0301C",
+   "note": "appeared"
+  }
+ ]
+}

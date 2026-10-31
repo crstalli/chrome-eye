@@ -1,0 +1,39 @@
+{
+  "steps": [
+    {
+      "step": "3081 iframe target present",
+      "ok": true,
+      "detail": "iframe loaded"
+    },
+    {
+      "step": "dropdown has real rows",
+      "ok": false,
+      "detail": "rows=0 status=\"3 workspace(s), 0 session(s)\" samples=[]"
+    },
+    {
+      "step": "session click → iframe shows session",
+      "ok": false,
+      "detail": "no rows to click"
+    },
+    {
+      "step": "Esc closes dropdown",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "step": "overlay opens (close button visible)",
+      "ok": true,
+      "detail": "closeBtn=true treeBtn=true"
+    },
+    {
+      "step": "overlay closes (✕)",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "failures": [
+    "dropdown has real rows",
+    "session click → iframe shows session"
+  ],
+  "exitCode": 1
+}
