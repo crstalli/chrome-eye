@@ -5,9 +5,9 @@
   "description": "Chrome Eye — agent-driven browser control extension for DSH",
   "main": "index.js",
   "type": "module",
-  "files": ["bridge/", "extension/", "plugins/", "cordis.patch.yml"],
+  "files": ["bridge/", "extension/", "plugins/", "cordis.patch.yml", "prepare.js"],
   "scripts": {
-    "prepare": "node -e \"\\nconst fs=require('fs');const p=require('path');\\n// Symlinks go into the profile's node_modules/@local/ (parent of the installed repo)\\nconst profileNM = p.join(__dirname, '..');\\nconst localDir = p.join(profileNM, '@local');\\nif (!fs.existsSync(localDir)) fs.mkdirSync(localDir, {recursive: true});\\nconst plugins = fs.readdirSync(p.join(__dirname, 'plugins')).filter(f => {\\n  const pp = p.join(__dirname, 'plugins', f);\\n  return fs.statSync(pp).isDirectory();\\n});\\nplugins.forEach(plugin => {\\n  const link = p.join(localDir, plugin);\\n  const target = p.join(__dirname, 'plugins', plugin);\\n  try { fs.unlinkSync(link); } catch(e) {}\\n  fs.symlinkSync(target, link, 'dir');\\n  console.log('  @local/' + plugin + ' -> ' + target);\\n});\\nconsole.log('chrome-eye: prepared', plugins.length, 'plugin(s)');\\n\""
+    "prepare": "node prepare.js"
   },
   "dsh": {
     "bundle": {
