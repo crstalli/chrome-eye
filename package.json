@@ -1,5 +1,15 @@
 {
+  "name": "chrome-eye",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Chrome Eye — agent-driven browser control extension for DSH",
+  "scripts": {
+    "postinstall": "node -e \"require('child_process').execSync('pnpm i --dir plugins/chrome-eye-tools')\" 2>/dev/null || true"
+  },
   "devDependencies": {
     "playwright": "^1.64.0"
+  },
+  "pnpm": {
+    "overrides": {}
   }
 }

@@ -5,8 +5,12 @@
 // Each tool POSTs to the bridge /cmd endpoint, polls /cmd?cmd=<id>,
 // and returns the result to the agent.
 // No disk writes — images stay in the bridge's in-memory pending store.
+//
+// Bridge URL: reads CHROME_EYE_BRIDGE_URL env var (set by chrome-eye-bridge plugin),
+// falls back to CHROME_EYE_BRIDGE_PORT env var (port only), or hardcoded default.
 
-const BRIDGE = 'http://127.0.0.1:3081';
+const BRIDGE = process.env.CHROME_EYE_BRIDGE_URL ||
+  `http://127.0.0.1:${process.env.CHROME_EYE_BRIDGE_PORT || 3081}`;
 
 function mintId() {
   return 'ce-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
