@@ -7,7 +7,7 @@
   "type": "module",
   "files": ["bridge/", "extension/", "plugins/", "cordis.patch.yml"],
   "scripts": {
-    "prepare": "node -e \"\\nconst fs=require('fs');const p=require('path');const nm=p.join(__dirname,'node_modules');const ld=p.join(nm,'@local');if(!fs.existsSync(ld))fs.mkdirSync(ld,{recursive:true});fs.readdirSync(p.join(__dirname,'plugins')).filter(f=>{const pp=p.join(__dirname,'plugins',f);return fs.statSync(pp).isDirectory();}).forEach(plugin=>{const lk=p.join(ld,plugin);const tg=p.join(__dirname,'plugins',plugin);try{fs.unlinkSync(lk);}catch(e){}fs.symlinkSync(tg,lk,'dir');console.log('  @local/'+plugin);});console.log('chrome-eye: prepared',fs.readdirSync(p.join(__dirname,'plugins')).filter(f=>fs.statSync(p.join(__dirname,'plugins',f)).isDirectory()).length,'plugins');\\n\""
+    "prepare": "node -e \"\\nconst fs=require('fs');const p=require('path');\\n// Symlinks go into the profile's node_modules/@local/ (parent of the installed repo)\\nconst profileNM = p.join(__dirname, '..');\\nconst localDir = p.join(profileNM, '@local');\\nif (!fs.existsSync(localDir)) fs.mkdirSync(localDir, {recursive: true});\\nconst plugins = fs.readdirSync(p.join(__dirname, 'plugins')).filter(f => {\\n  const pp = p.join(__dirname, 'plugins', f);\\n  return fs.statSync(pp).isDirectory();\\n});\\nplugins.forEach(plugin => {\\n  const link = p.join(localDir, plugin);\\n  const target = p.join(__dirname, 'plugins', plugin);\\n  try { fs.unlinkSync(link); } catch(e) {}\\n  fs.symlinkSync(target, link, 'dir');\\n  console.log('  @local/' + plugin + ' -> ' + target);\\n});\\nconsole.log('chrome-eye: prepared', plugins.length, 'plugin(s)');\\n\""
   },
   "dsh": {
     "bundle": {
