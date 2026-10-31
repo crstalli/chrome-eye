@@ -4,8 +4,7 @@
   "private": true,
   "description": "Chrome Eye — agent-driven browser control extension for DSH",
   "scripts": {
-    "postinstall": "node -e \"require('child_process').execSync('pnpm i --dir plugins/chrome-eye-tools')\" 2>/dev/null || true"
-  },
+    "prepare": "node -e \"\nconst fs = require('fs');\nconst path = require('path');\nconst { execSync } = require('child_process');\n\n// Create @local symlinks from the repo's plugins directory\nconst nodeModules = path.join(__dirname, 'node_modules');\nconst localDir = path.join(nodeModules, '@local');\n\nif (!fs.existsSync(localDir)) {\n  fs.mkdirSync(localDir, { recursive: true });\n}\n\n// Create symlinks for each plugin\nconst plugins = fs.readdirSync(path.join(__dirname, 'plugins')).filter(f => {\n  const p = path.join(__dirname, 'plugins', f);\n  return fs.statSync(p).isDirectory();\n});\n\nfor (const plugin of plugins) {\n  const link = path.join(localDir, plugin);\n  const target = path.join(__dirname, 'plugins', plugin);\n  \n  try { fs.unlinkSync(link); } catch {}\n  fs.symlinkSync(target, link, 'dir');\n  console.log('  created symlink:', '@local/' + plugin, '->', target);\n}\n\nconsole.log('chrome-eye: installed', plugins.length, 'plugin(s)');\n\"\n  },
   "devDependencies": {
     "playwright": "^1.64.0"
   },
