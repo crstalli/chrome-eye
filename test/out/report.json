@@ -1,0 +1,62 @@
+{
+  "at": "2026-09-08T08:07:31.588Z",
+  "fixtureUrl": "http://127.0.0.1:3456/page.html",
+  "debug": "http://127.0.0.1:9222",
+  "results": [
+    {
+      "name": "extension service worker loaded",
+      "status": "PASS",
+      "detail": "chrome-extension://mlolgaoijponghgfnlcljlohnhlpnhkd/sw.js"
+    },
+    {
+      "name": "content script ran on fixture page",
+      "status": "PASS",
+      "detail": "console: \"Chrome Eye content script active\""
+    },
+    {
+      "name": "capture: url",
+      "status": "PASS",
+      "detail": "http://127.0.0.1:3456/page.html"
+    },
+    {
+      "name": "capture: title",
+      "status": "PASS",
+      "detail": "\"Chrome Eye Test Page\""
+    },
+    {
+      "name": "capture: headings",
+      "status": "PASS",
+      "detail": "[{\"level\":1,\"t\":\"Alpha heading\"},{\"level\":2,\"t\":\"Beta section\"},{\"level\":3,\"t\":\"Gamma subsection\"}]"
+    },
+    {
+      "name": "capture: links",
+      "status": "PASS",
+      "detail": "[{\"t\":\"Home\",\"h\":\"https://example.com/\"},{\"t\":\"Docs\",\"h\":\"https://example.com/docs\"},{\"t\":\"API\",\"h\":\"https://docs.example.dev/api\"},{\"t\":\"中文链接\",\"h\":\"https://example.org/cn\"},{\"t\":\"Last\",\"h\":\"https://example.net/end\"}]"
+    },
+    {
+      "name": "capture: text",
+      "status": "PASS",
+      "detail": "textLen=308"
+    },
+    {
+      "name": "panel bottom bar rendered",
+      "status": "PASS",
+      "detail": "{\"h\":61,\"w\":400}"
+    },
+    {
+      "name": "panel iframe loads real DSH GUI (:3080)",
+      "status": "PASS",
+      "detail": "http://127.0.0.1:3080/"
+    },
+    {
+      "name": "no horizontal scroll at 400px (T5.2)",
+      "status": "PASS",
+      "detail": "{\"sw\":400,\"cw\":400}"
+    }
+  ],
+  "summary": {
+    "pass": 10,
+    "fail": 0,
+    "skip": 0
+  }
+}

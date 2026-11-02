@@ -1,0 +1,14 @@
+{
+  "ts": "2026-09-12T11:09:47.274Z",
+  "chrome": "Google Chrome for Testing 152.0.7977.82",
+  "extensionDir": "/mnt/f/ai/chrome-eye/extension",
+  "results": [
+    {
+      "caseId": "runner-error",
+      "ok": false,
+      "detail": "page.goto: net::ERR_BLOCKED_BY_CLIENT at chrome-extension://mlolgaoijponghgfnlcljlohnhlpnhkd/panel.html\nCall log:\n  - navigating to \"chrome-extension://mlolgaoijponghgfnlcljlohnhlpnhkd/panel.html\", waiting until \"domcontentloaded\"\n\n    at /mnt/f/ai/chrome-eye/tests/run.mjs:122:14"
+    }
+  ],
+  "shots": [],
+  "pass": false
+}
