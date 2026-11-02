@@ -1,24 +1,19 @@
-// prepare: creates @local/ symlinks and registers chrome-eye plugins
-// as dependencies in the profile's package.json
+// prepare: creates @local/ symlinks at the profile's node_modules/@local/
+// pointing to ../chrome-eye/plugins/<plugin>
 const fs = require('fs');
 const path = require('path');
 
-const profileRoot = process.cwd();
-const profilePkgPath = path.join(profileRoot, 'package.json');
-const profileNM = path.join(profileRoot, 'node_modules');
+// __dirname is the chrome-eye package directory (e.g., /profile/node_modules/chrome-eye/)
+// The profile root is one level up from __dirname when using hoisted linker
+// Actually, during pnpm prepare in a temp dir, __dirname = temp dir
+// The profile root's node_modules/@local/ needs symlinks
+// From @local/: symlink is ../chrome-eye/plugins/<plugin>
+
+const profileNM = path.join(__dirname, '..', 'node_modules');
 const localDir = path.join(profileNM, '@local');
 
-// Create @local/ directory
 if (!fs.existsSync(localDir)) {
   fs.mkdirSync(localDir, { recursive: true });
-}
-
-// Register chrome-eye plugins in profile's package.json dependencies
-let pkgData;
-try {
-  pkgData = JSON.parse(fs.readFileSync(profilePkgPath, 'utf-8'));
-} catch (e) {
-  pkgData = { name: 'dsh-profile', dependencies: {} };
 }
 
 const pluginsDir = path.join(__dirname, 'plugins');
@@ -27,21 +22,9 @@ const plugins = fs.readdirSync(pluginsDir).filter(f => {
   return fs.statSync(pp).isDirectory();
 });
 
-// Add dependencies if not present
-if (!pkgData.dependencies) pkgData.dependencies = {};
-for (const plugin of plugins) {
-  const depName = '@local/' + plugin;
-  if (!pkgData.dependencies[depName]) {
-    pkgData.dependencies[depName] = 'link:./node_modules/chrome-eye/plugins/' + plugin;
-  }
-}
-fs.writeFileSync(profilePkgPath, JSON.stringify(pkgData, null, 2) + '\n');
-console.log('chrome-eye: added dependencies to package.json');
-
-// Create @local/ symlinks
 for (const plugin of plugins) {
   const link = path.join(localDir, plugin);
-  // Relative symlink from @local/ to ../chrome-eye/plugins/<plugin>
+  // From @local/: ../chrome-eye/plugins/<plugin> resolves to node_modules/chrome-eye/plugins/<plugin>
   const target = path.join('..', 'chrome-eye', 'plugins', plugin);
   try { fs.unlinkSync(link); } catch (e) {}
   fs.symlinkSync(target, link, 'dir');
