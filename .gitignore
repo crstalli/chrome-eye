@@ -22,3 +22,8 @@ bridge/audit.db-wal
 .env
 *.env
 *.local
+
+# Large binaries and scratch data
+scratch/chrome/
+test/chrome/
+*.zip
