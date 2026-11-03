@@ -1,18 +1,20 @@
 # chrome-eye bundle — applies when a profile installs this package via
 # `dsh plugin add github:crstalli/chrome-eye`.
 #
-# The bridge row is commented by default; users uncomment it in their
-# profile's own cordis.patch.yml to enable the bridge lifecycle.
-# The tools row is always active.
+# References plugins directly via relative paths (resolved against the
+# bundle's cordis.patch.yml directory), so no @local/ symlinks are needed.
 
+# Chrome Eye model-facing tools: screenshot, readPage, listTabs, getElementRect,
+# autoFormFill, click, type, navigate, getPageText.
+# Always active.
 - insert:
     - id: chrome-eye-tools
-      name: '@local/chrome-eye-tools'
+      name: './plugins/chrome-eye-tools/index.js'
 
 # Uncomment below or override in your profile cordis.patch.yml to enable the bridge:
 # - insert:
 #     - id: chrome-eye-bridge
-#       name: '@local/chrome-eye-bridge'
+#       name: './plugins/chrome-eye-bridge/index.js'
 #       config:
 #         port: 3081
 #         guiPort: 3080

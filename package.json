@@ -3,19 +3,34 @@
   "version": "1.0.0",
   "private": true,
   "description": "Chrome Eye — agent-driven browser control extension for DSH",
-  "main": "index.js",
+  "main": "plugins/chrome-eye-tools/index.js",
   "type": "module",
-  "files": ["bridge/", "extension/", "plugins/", "cordis.patch.yml", "postinstall.mjs"],
+  "files": [
+    "bridge/",
+    "extension/",
+    "plugins/",
+    "cordis.patch.yml",
+    "postinstall.mjs",
+    "prepare.cjs"
+  ],
   "scripts": {
+    "prepare": "node prepare.cjs",
     "postinstall": "node postinstall.mjs"
+  },
+  "engines": {
+    "dsh": ">=0.1.2 <0.2.0"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.2"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "^4.0.2",
+    "playwright": "^1.64.0"
   },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
     }
-  },
-  "devDependencies": {
-    "playwright": "^1.64.0"
   },
   "pnpm": {
     "overrides": {}

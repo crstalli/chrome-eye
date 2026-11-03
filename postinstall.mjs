@@ -1,21 +1,20 @@
-// postinstall: creates @local/ symlinks at the package's node_modules/@local/
-// pointing to ../plugins/<plugin>
-// When hoisted by pnpm, these resolve correctly from node_modules/@local/
+// postinstall: creates node_modules/@local/ symlinks for profiles that
+// reference @local/ in their own cordis.patch.yml.
+// When using relative paths in the bundle's cordis.patch.yml (./plugins/...),
+// symlinks are optional — the bundle loads plugins directly.
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const pluginsDir = path.join(__dirname, 'plugins');
 const localDir = path.join(__dirname, 'node_modules', '@local');
-
 if (!fs.existsSync(localDir)) {
   fs.mkdirSync(localDir, { recursive: true });
 }
 
+const pluginsDir = path.join(__dirname, 'plugins');
 const plugins = fs.readdirSync(pluginsDir).filter(f => {
-  const pp = path.join(pluginsDir, f);
-  return fs.statSync(pp).isDirectory();
+  return fs.statSync(path.join(pluginsDir, f)).isDirectory();
 });
 
 for (const plugin of plugins) {
@@ -26,4 +25,4 @@ for (const plugin of plugins) {
   console.log('  @local/' + plugin + ' -> ' + target);
 }
 
-console.log('chrome-eye: prepared', plugins.length, 'plugin(s)');
+console.log('chrome-eye: prepared');
