@@ -1,6 +1,9 @@
 # chrome-eye bundle — always active when installed via `dsh plugin add`.
 # Tools are always loaded. The bridge is included by default;
 # profile cordis.patch.yml can override config (port).
+#
+# NOTE: guiPort defaults to 3080. Profiles MUST override via their own
+# cordis.patch.yml config block to avoid conflicts with the web profile.
 
 # Chrome Eye model-facing tools: screenshot, readPage, listTabs, getElementRect,
 # autoFormFill, click, type, navigate, getPageText.
@@ -9,12 +12,10 @@
       name: './plugins/chrome-eye-tools/index.js'
 
 # Bridge plugin — serves the GUI and proxies to the webserver.
-# guiPort is automatically set to the webserver port via !!js expression,
-# so no manual override is needed unless the bridge itself listens on a
-# different port (use config.port for that).
+# guiPort defaults to 3080; profiles override via config.port/guiPort.
 - insert:
     - id: chrome-eye-bridge
       name: './plugins/chrome-eye-bridge/index.js'
       config:
-        port: 3085
-        guiPort: !!js ctx.webStartup.port ?? 3080
+        port: 3081
+        guiPort: 3080
