@@ -1045,6 +1045,152 @@
   }
 
   // ---------------------------------------------------------------------------
+  // driveGetPageContext — Gemini-like structured page context extraction
+  // Extracts headings, links, forms, tables, meta data, and visible text
+  // in a structured format that gives the model a richer understanding of the page.
+  // ---------------------------------------------------------------------------
+  function driveGetPageContext(message) {
+    var maxChars = typeof message.maxChars === 'number' ? message.maxChars : 50000;
+    if (maxChars < 0) maxChars = 50000;
+    var maxLinks = typeof message.maxLinks === 'number' ? message.maxLinks : 50;
+    var maxHeadings = typeof message.maxHeadings === 'number' ? message.maxHeadings : 30;
+    var maxForms = typeof message.maxForms === 'number' ? message.maxForms : 10;
+    var maxTables = typeof message.maxTables === 'number' ? message.maxTables : 5;
+
+    var ctx = {
+      url: document.URL,
+      title: document.title || '',
+      headings: [],
+      links: [],
+      forms: [],
+      tables: [],
+      meta: {},
+      visibleText: ''
+    };
+
+    // Extract metadata
+    try {
+      var metas = document.querySelectorAll('meta[name], meta[property], meta[itemprop]');
+      metas.forEach(function(m) {
+        var name = m.getAttribute('name') || m.getAttribute('property') || m.getAttribute('itemprop');
+        var content = m.getAttribute('content');
+        if (name && content) ctx.meta[name] = content;
+      });
+      // Also get og:title, og:description, etc.
+      var ogMetas = document.querySelectorAll('meta[property^="og:"]');
+      ogMetas.forEach(function(m) {
+        ctx.meta[m.getAttribute('property')] = m.getAttribute('content');
+      });
+    } catch(e) {}
+
+    // Extract headings
+    var headingEls = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    headingEls.forEach(function(h) {
+      var text = h.textContent.trim().replace(/\s+/g, ' ').slice(0, 200);
+      if (text && !h.closest('[hidden], [style*="display: none"], [style*="display:none"]')) {
+        ctx.headings.push({ level: parseInt(h.tagName.charAt(1)) || 0, text: text });
+      }
+    });
+    ctx.headings = ctx.headings.slice(0, maxHeadings);
+
+    // Extract visible links
+    var links = document.querySelectorAll('a[href]');
+    links.forEach(function(a) {
+      var text = a.textContent.trim().replace(/\s+/g, ' ').slice(0, 100);
+      var href = a.getAttribute('href') || '';
+      var visible = !a.closest('[hidden]') && isElementVisible(a);
+      if (text && visible) {
+        ctx.links.push({ text: text, url: href });
+      }
+    });
+    ctx.links = ctx.links.slice(0, maxLinks);
+
+    // Extract forms
+    var forms = document.querySelectorAll('form');
+    forms.forEach(function(f) {
+      var inputs = f.querySelectorAll('input:not([type="hidden"]), select, textarea');
+      var fields = [];
+      inputs.forEach(function(inp) {
+        var tag = inp.tagName.toLowerCase();
+        fields.push({
+          tag: tag,
+          type: inp.getAttribute('type') || '',
+          name: inp.getAttribute('name') || inp.id || '',
+          id: inp.id || '',
+          placeholder: (inp.placeholder || '').slice(0, 50),
+          required: inp.hasAttribute('required'),
+          value: (inp.value || '').slice(0, 50)
+        });
+      });
+      if (fields.length > 0) {
+        ctx.forms.push({
+          action: f.getAttribute('action') || '',
+          method: f.getAttribute('method') || 'GET',
+          fields: fields
+        });
+      }
+    });
+    ctx.forms = ctx.forms.slice(0, maxForms);
+
+    // Extract table summaries
+    var tables = document.querySelectorAll('table');
+    tables.forEach(function(tbl) {
+      if (!isElementVisible(tbl)) return;
+      var rows = tbl.querySelectorAll('tr');
+      var headers = tbl.querySelectorAll('th');
+      var headerTexts = [];
+      headers.forEach(function(th) { headerTexts.push(th.textContent.trim().slice(0, 50)); });
+      var rowTexts = [];
+      var rowCount = 0;
+      rows.forEach(function(tr) {
+        if (rowCount >= 10) return; // limit rows
+        var cells = tr.querySelectorAll('td');
+        var cellTexts = [];
+        cells.forEach(function(td) { cellTexts.push(td.textContent.trim().slice(0, 50)); });
+        rowTexts.push(cellTexts.join(' | '));
+        rowCount++;
+      });
+      ctx.tables.push({
+        headers: headerTexts.slice(0, 10),
+        rows: rowTexts.slice(0, 10),
+        totalRows: rows.length,
+        totalCols: Math.max(...Array.from(rows).map(r => r.querySelectorAll('td').length))
+      });
+    });
+    ctx.tables = ctx.tables.slice(0, maxTables);
+
+    // Visible text (inner text, cleaned)
+    try {
+      var visible = document.body.innerText || '';
+      var cleaned = visible.replace(/\s+/g, ' ').trim();
+      if (cleaned.length > maxChars) {
+        ctx.visibleText = cleaned.slice(0, maxChars);
+        ctx.truncated = true;
+      } else {
+        ctx.visibleText = cleaned;
+        ctx.truncated = false;
+      }
+    } catch(e) {}
+
+    ctx.totalHeadings = headingEls.length;
+    ctx.totalLinks = links.length;
+    ctx.totalForms = forms.length;
+    ctx.totalTables = tables.length;
+
+    return { ok: true, context: ctx };
+  }
+
+  // Helper: check if element is visible
+  function isElementVisible(el) {
+    if (!el || el === document.body) return true;
+    var rect = el.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return false;
+    var style = window.getComputedStyle(el);
+    if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return false;
+    return isElementVisible(el.parentElement);
+  }
+
+  // ---------------------------------------------------------------------------
   // driveGetElementRect — return bounding rect of an element
   // Enables the agent's vision model to place bounding boxes on screenshots.
   // ---------------------------------------------------------------------------
@@ -1141,13 +1287,14 @@
     chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
       if (!message || typeof message.type !== 'string') return false;
       var t = message.type;
-      if (t !== 'chrome-eye:drive:click' && t !== 'chrome-eye:drive:type' && t !== 'chrome-eye:drive:navigate' && t !== 'chrome-eye:drive:getPageText' && t !== 'chrome-eye:drive:getElementRect' && t !== 'chrome-eye:drive:autoFormFill') return false;
+      if (t !== 'chrome-eye:drive:click' && t !== 'chrome-eye:drive:type' && t !== 'chrome-eye:drive:navigate' && t !== 'chrome-eye:drive:getPageText' && t !== 'chrome-eye:drive:getPageContext' && t !== 'chrome-eye:drive:getElementRect' && t !== 'chrome-eye:drive:autoFormFill') return false;
       try {
         var result;
         if (t === 'chrome-eye:drive:click') result = driveClick(message);
         else if (t === 'chrome-eye:drive:type') result = driveType(message);
         else if (t === 'chrome-eye:drive:navigate') result = driveNavigate(message);
         else if (t === 'chrome-eye:drive:getPageText') result = driveGetPageText(message);
+        else if (t === 'chrome-eye:drive:getPageContext') result = driveGetPageContext(message);
         else if (t === 'chrome-eye:drive:getElementRect') result = driveGetElementRect(message);
         else if (t === 'chrome-eye:drive:autoFormFill') result = driveAutoFormFill(message);
         sendResponse(result);

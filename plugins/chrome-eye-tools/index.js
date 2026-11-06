@@ -611,6 +611,104 @@ const getPageTextTool = {
 };
 
 // ===========================================================================
+// chrome-eye.getPageContext
+// ===========================================================================
+// Gemini-like structured page context: headings, links, forms, tables, meta, visible text.
+
+const getPageContextTool = {
+  name: 'chrome-eye.getPageContext',
+  description: 'Extract structured context from the current (or specified) tab: headings, links, forms, tables, meta data, and visible text. This gives the model a rich understanding of the page similar to Gemini\'s page reading. Use chrome-eye.listTabs to find tab IDs.',
+  parameters: {
+    type: 'object',
+    properties: {
+      maxChars: { type: 'number', description: 'Maximum characters of visible text (default 50000)' },
+      maxLinks: { type: 'number', description: 'Maximum links to return (default 50)' },
+      maxHeadings: { type: 'number', description: 'Maximum headings to return (default 30)' },
+      maxForms: { type: 'number', description: 'Maximum forms to return (default 10)' },
+      maxTables: { type: 'number', description: 'Maximum tables to return (default 5)' },
+      tabId: { type: 'number', description: 'Tab ID (defaults to active tab)' },
+    },
+    additionalProperties: false,
+  },
+  output: {
+    schema: {
+      type: 'object',
+      properties: {
+        context: { type: 'object', description: 'Structured page context with headings, links, forms, tables, meta, and text' },
+        url: { type: 'string', description: 'Page URL' },
+        title: { type: 'string', description: 'Page title' },
+        tabId: { type: 'number', description: 'Tab ID' },
+        error: { type: 'string', description: 'Error message' },
+      },
+      additionalProperties: false,
+    },
+    render: (_args, result) => {
+      if (result.error) return [{ type: 'text', text: `getPageContext failed: ${result.error}` }];
+      const c = result.context || {};
+      const parts = [];
+      if (result.title) parts.push(`**${result.title}**`);
+      if (result.url) parts.push(`URL: ${result.url}`);
+      if (c.headings?.length) {
+        parts.push('\n## Headings:');
+        c.headings.forEach(h => parts.push(`  ${'  '.repeat(h.level - 1)}- ${h.text}`));
+      }
+      if (c.links?.length) {
+        parts.push(`\n## Links (${c.links.length}):`);
+        c.links.forEach(l => parts.push(`  - [${l.text}](${l.url})`));
+      }
+      if (c.forms?.length) {
+        parts.push(`\n## Forms (${c.forms.length}):`);
+        c.forms.forEach(f => {
+          parts.push(`  - Form: ${f.action || '(no action)'} [${f.method}]`);
+          f.fields.forEach(fi => parts.push(`    - <${fi.tag}> name="${fi.name}" type="${fi.type}"${fi.required ? ' required' : ''}${fi.placeholder ? ` placeholder="${fi.placeholder}"` : ''}`));
+        });
+      }
+      if (c.tables?.length) {
+        parts.push(`\n## Tables (${c.tables.length}):`);
+        c.tables.forEach((t, i) => {
+          parts.push(`  - Table ${i + 1}: ${t.totalRows} rows x ${t.totalCols} cols`);
+          if (t.headers.length) parts.push(`    Headers: ${t.headers.join(', ')}`);
+        });
+      }
+      if (c.visibleText) parts.push(`\n--- Visible text (${(c.visibleText.length / 1000).toFixed(1)}K chars) ---\n${c.visibleText.slice(0, 3000)}${c.truncated ? '\n...(truncated)' : ''}`);
+      return [{ type: 'text', text: parts.join('\n') }];
+    },
+  },
+  isConcurrencySafe: () => false,
+  async execute(args) {
+    const id = mintId();
+    await fetch(`${BRIDGE}/cmd`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id,
+        action: 'getPageContext',
+        params: {
+          maxChars: args.maxChars || 50000,
+          maxLinks: args.maxLinks || 50,
+          maxHeadings: args.maxHeadings || 30,
+          maxForms: args.maxForms || 10,
+          maxTables: args.maxTables || 5,
+          tabId: args.tabId
+        }
+      }),
+    });
+    const result = await pollResult(id, 15000);
+    if (!result || result.status === 'error') {
+      throw new Error(`getPageContext failed: ${result?.error || 'timeout or error'}`);
+    }
+    const r = result.result;
+    return {
+      context: r.context || {},
+      url: r.url || '',
+      title: r.title || '',
+      tabId: r.tabId,
+      error: r.error || undefined,
+    };
+  },
+};
+
+// ===========================================================================
 // Host plugin: registers the tools via ctx.tools.register()
 // ===========================================================================
 
@@ -622,7 +720,7 @@ class ChromeEyeToolsPlugin extends Service {
   static inject = ['tools'];
 
   apply(ctx) {
-    console.error('[chrome-eye-tools] registering 9 tools');
+    console.error('[chrome-eye-tools] registering 10 tools');
     ctx.tools.register(screenshotTool);
     ctx.tools.register(readPageTool);
     ctx.tools.register(listTabsTool);
@@ -632,7 +730,8 @@ class ChromeEyeToolsPlugin extends Service {
     ctx.tools.register(typeTool);
     ctx.tools.register(navigateTool);
     ctx.tools.register(getPageTextTool);
-    console.error('[chrome-eye-tools] all 9 tools registered');
+    ctx.tools.register(getPageContextTool);
+    console.error('[chrome-eye-tools] all 10 tools registered');
     return ctx.effect(() => {
       // Cleanup: tools auto-unregister on fiber disposal
     });

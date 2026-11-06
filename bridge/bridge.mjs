@@ -55,6 +55,11 @@
  *                            the app bundle, so the write lands before
  *                            dsh-client-store rehydrates. No RPC wire change;
  *                            the extension still talks only to :3081.
+ *   GET  /.well-known/bridge-info -> {"port": <bridge_port>, "guiPort": <gui_port>}
+ *                            so the Chrome extension can discover the correct
+ *                            bridge port (the extension hardcodes :3081;
+ *                            profiles may run the bridge on a different port
+ *                            via CHROME_EYE_BRIDGE_PORT).
  *   POST /cmd             -> accept an agent command {id, action, params} into
  *                            the pending store (the agent's chrome-eye model
  *                            tool posts this); the panel polls /cmd/pending
@@ -879,6 +884,13 @@ const server = createServer(async (req, res) => {
     }
     if (req.method === 'GET' && url.pathname === '/session-seed') {
       await handleSessionSeed(req, res, url);
+      return;
+    }
+    // .well-known/bridge-info — lets the Chrome extension discover the
+    // actual bridge port (the extension hardcodes :3081 but profiles may
+    // override via CHROME_EYE_BRIDGE_PORT env var).
+    if (req.method === 'GET' && url.pathname === '/.well-known/bridge-info') {
+      sendJson(res, 200, { port: PORT, guiPort: UPSTREAM_PORT }, CORS_HEADERS);
       return;
     }
     if (url.pathname === '/cmd/pending') {

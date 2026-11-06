@@ -216,6 +216,25 @@ function executeCmd(cmd) {
         };
       });
     }
+
+    if (action === 'getPageContext') {
+      return driveOnTab(tab.id, 'getPageContext', {
+        maxChars: typeof params.maxChars === 'number' ? params.maxChars : 50000,
+        maxLinks: typeof params.maxLinks === 'number' ? params.maxLinks : 50,
+        maxHeadings: typeof params.maxHeadings === 'number' ? params.maxHeadings : 30,
+        maxForms: typeof params.maxForms === 'number' ? params.maxForms : 10,
+        maxTables: typeof params.maxTables === 'number' ? params.maxTables : 5
+      }).then(function (r) {
+        return {
+          ok: true,
+          action: action,
+          tabId: tab.id,
+          url: tab.url,
+          title: tab.title,
+          context: (r && r.context) || null
+        };
+      });
+    }
     if (action === 'readPage') {
       // Capture a specific tab: screenshot (base64) + DOM text.
       // Requires params.tabId (the tab to read).
@@ -300,7 +319,16 @@ function executeCmd(cmd) {
 }
 
 // The loopback bridge that owns the /cmd pipeline.
+// Discovered via .well-known/bridge-info on startup; falls back to :3081.
 var BRIDGE = 'http://127.0.0.1:3081';
+(function discoverBridge() {
+  fetch('http://127.0.0.1:3081/.well-known/bridge-info', { cache: 'no-store' })
+    .then(function (r) { return r.json(); })
+    .then(function (info) {
+      BRIDGE = 'http://127.0.0.1:' + info.port;
+    })
+    .catch(function () { /* keep default :3081 */ });
+})();
 
 // Post an executed command result to the bridge so its pending store
 // (and the agent polling GET /cmd?cmd=<id>) resolves. The bridge

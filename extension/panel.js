@@ -73,7 +73,37 @@
   // <id>). Screenshot results are also broadcast to this panel as
   // 'chrome-eye:screenshot' so the preview overlay updates live.
   // ------------------------------------------------------------------
-  var CMD_BASE = 'http://127.0.0.1:3081';
+  // Discover bridge port: probe the well-known endpoint on the default port,
+  // fall back to probing common ports if needed.
+  var BRIDGE_URL = 'http://127.0.0.1:3081';
+  var BRIDGE_PORTS = [3081, 3099, 3082, 3083];
+
+  function discoverBridgeUrl() {
+    // First try the well-known endpoint on the default port.
+    fetch('http://127.0.0.1:3081/.well-known/bridge-info', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (info) {
+        BRIDGE_URL = 'http://127.0.0.1:' + info.port;
+      })
+      .catch(function () {
+        // Fallback: probe common ports.
+        (function probe(ports, idx) {
+          if (idx >= ports.length) return;
+          fetch('http://127.0.0.1:' + ports[idx] + '/.well-known/bridge-info', { cache: 'no-store' })
+            .then(function (r) {
+              if (r.ok) return r.json();
+              throw new Error('not ok');
+            })
+            .then(function (info) {
+              BRIDGE_URL = 'http://127.0.0.1:' + info.port;
+            })
+            .catch(function () {
+              probe(ports, idx + 1);
+            });
+        })(BRIDGE_PORTS, 0);
+      });
+  }
+  discoverBridgeUrl();
 
   // Screenshot preview overlay (added to panel.html this change).
   var ssOverlay = document.getElementById('screenshot-overlay');
@@ -225,8 +255,8 @@
 
   // ------------------------------------------------------------------
   // Task B (real probe) + Task G1 — bottom-bar connectivity + the dark
-  // bridge-offline card over the iframe area. ONE probe to
-  // http://127.0.0.1:3081/ drives everything: the bridge is a full
+  // bridge-offline card over the iframe area. ONE probe to BRIDGE_URL
+  // drives everything: the bridge is a full
   // reverse proxy to :3080 and answers CORS (ACAO *), so the fetch
   // resolves exactly when the bridge — and the GUI behind it — is
   // reachable. (The old direct :3080 fetch can never succeed from an
@@ -272,8 +302,8 @@
     }
     if (bridgeOverlayMsg) {
       bridgeOverlayMsg.textContent = state === 'offline'
-        ? 'the chrome-eye bridge on 127.0.0.1:3081 is not running'
-        : 'reaching the chrome-eye bridge on 127.0.0.1:3081';
+        ? 'the chrome-eye bridge at ' + BRIDGE_URL + ' is not running'
+        : 'reaching the chrome-eye bridge at ' + BRIDGE_URL;
     }
   }
 
@@ -283,7 +313,7 @@
   // document. The manifest re-injects the composer hook on the fresh load.
   function reloadDshIframe() {
     if (!dshIframe) return;
-    var u = dshIframe.getAttribute('src') || 'http://127.0.0.1:3081/';
+    var u = dshIframe.getAttribute('src') || (BRIDGE_URL + '/');
     dshIframe.src = 'about:blank';
     setTimeout(function () { if (dshIframe) dshIframe.src = u; }, 60);
   }
@@ -314,7 +344,7 @@
       connSegment(connBridge, 'bridge: down', 'ce-conn-bad');
     }
     try {
-      fetch('http://127.0.0.1:3081/', { cache: 'no-store' }).then(up).catch(down);
+      fetch(BRIDGE_URL + '/', { cache: 'no-store' }).then(up).catch(down);
     } catch (e) {
       down();
     }
@@ -329,14 +359,14 @@
   // ------------------------------------------------------------------
   // T2 — session-restore for the panel's GUI iframe.
   //
-  // The iframe loads the DSH GUI from 127.0.0.1:3081 (the bridge). Chrome
+  // The iframe loads the DSH GUI from BRIDGE_URL (the bridge). Chrome
   // partitions localStorage PER ORIGIN, so the GUI's persisted
   // "current session" cell (dsh.sessions.current) that the user built on
-  // the direct GUI origin (:3080) is invisible to the iframe's :3081
-  // origin — a fresh panel boot has nothing to restore. The bridge
+  // the direct GUI origin (:3080) is invisible to the iframe's
+  // BRIDGE_URL origin — a fresh panel boot has nothing to restore. The bridge
   // injects a /session-seed <script> into the document head that seeds
   // the :3081 cell generically (latest session via the upstream RPC), but
-  // the authoritative value is the :3081 origin's own localStorage,
+  // the authoritative value is BRIDGE_URL origin's own localStorage,
   // which only the content script running INSIDE the frame can read and
   // write (same-origin). On every iframe load we ask that content script
   // for the cell value; if it is empty we hand it the last-seen session
@@ -360,7 +390,7 @@
   function postToIframe(obj) {
     if (!dshIframe || !dshIframe.contentWindow) return;
     try {
-      dshIframe.contentWindow.postMessage(obj, 'http://127.0.0.1:3081');
+      dshIframe.contentWindow.postMessage(obj, BRIDGE_URL);
     } catch (e) { /* frame not navigated yet */ }
   }
 
@@ -384,11 +414,12 @@
     // guiSessionId, mirrored here by the seed-check:result value we just
     // got back); otherwise ask the bridge to resolve the latest session
     // (it queries the upstream /api/session/list with the minted cookie).
+    // Probe the bridge at the discovered URL.
     if (seedLastSeen) {
       callback(seedLastSeen);
       return;
     }
-    fetch('http://127.0.0.1:3081/session-seed?probe=1', { cache: 'no-store' })
+    fetch(BRIDGE_URL + '/session-seed?probe=1', { cache: 'no-store' })
       .then(function (r) {
         // The bridge answers the ?id= form with a one-line script; we just
         // want the id, so ask the bridge's /session-seed in "resolve" mode
